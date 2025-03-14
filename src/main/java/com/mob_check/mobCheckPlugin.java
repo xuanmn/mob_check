@@ -82,8 +82,7 @@ public class mobCheckPlugin extends Plugin
 		npcNextAttackTickMap.entrySet().removeIf(entry -> entry.getKey().isDead());
 	}
 
-	public Map<NPC, Integer> getNpcNextAttackTickMap()
-	{
+	public Map<NPC, Integer> getNpcNextAttackTickMap() {
 		return npcNextAttackTickMap;
 	}
 }
