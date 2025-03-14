@@ -5,7 +5,7 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
 @ConfigGroup("example")
-public interface mobCheckConfig extends Config
+public interface MobCheckConfig extends Config
 {
 	@ConfigItem(
 		keyName = "greeting",
