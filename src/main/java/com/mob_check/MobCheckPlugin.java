@@ -1,6 +1,5 @@
 package com.mob_check;
 
-import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.events.AnimationChanged;
@@ -19,9 +18,7 @@ public class MobCheckPlugin extends Plugin
 	@Inject
 	private Client client;
 
-    // This method retrieves the npcNextAttackTickMap
-    @Getter
-    private final Map<NPC, Integer> npcNextAttackTickMap = new HashMap<>();
+	private final Map<NPC, Integer> npcNextAttackTickMap = new HashMap<>();
 
 	@Override
 	protected void startUp() throws Exception
@@ -53,4 +50,9 @@ public class MobCheckPlugin extends Plugin
 		}
 	}
 
+	// This method retrieves the npcNextAttackTickMap
+	public Map<NPC, Integer> getNpcNextAttackTickMap()
+	{
+		return npcNextAttackTickMap;
+	}
 }
