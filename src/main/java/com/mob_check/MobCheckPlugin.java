@@ -50,6 +50,7 @@ public class MobCheckPlugin extends Plugin
 		}
 	}
 
+
 	// This method retrieves the npcNextAttackTickMap
 	public Map<NPC, Integer> getNpcNextAttackTickMap()
 	{
