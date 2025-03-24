@@ -31,9 +31,8 @@ public class MobCheckOverlay extends Overlay
     {
         Map<Integer, Integer> npcTickMap = plugin.getNpcNextAttackTickMap();
 
-        // Set larger font
         Font originalFont = graphics.getFont();
-        graphics.setFont(new Font("Arial", Font.BOLD, 16));
+        graphics.setFont(new Font("Arial", Font.BOLD, 18)); // ⬆️ Bigger, bold font
 
         for (NPC npc : client.getNpcs())
         {
@@ -53,14 +52,12 @@ public class MobCheckOverlay extends Overlay
             Point canvasTextLocation = npc.getCanvasTextLocation(graphics, text, 0);
             if (canvasTextLocation != null)
             {
-                Color color = ticks <= 2 ? Color.RED : Color.WHITE;
+                Color color = ticks <= 2 ? Color.RED : Color.WHITE; // 🔴 Red warning
                 OverlayUtil.renderTextLocation(graphics, canvasTextLocation, text, color);
             }
         }
 
-        // Restore original font
-        graphics.setFont(originalFont);
-
+        graphics.setFont(originalFont); // 🔁 Restore original font
         return null;
     }
 }
