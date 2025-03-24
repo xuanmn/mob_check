@@ -21,8 +21,7 @@ public class MobCheckPlugin extends Plugin
 {
 	@Inject
 	private Client client;
-
-
+	
 	@Inject
 	private MobCheckOverlay overlay;
 

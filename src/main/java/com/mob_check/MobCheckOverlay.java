@@ -1,5 +1,6 @@
 package com.mob_check;
 
+import net.runelite.client.util.Perspective;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.LocalPoint;
@@ -8,7 +9,6 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
-import net.runelite.client.util.Perspective;
 
 import javax.inject.Inject;
 import java.awt.*;
@@ -56,9 +56,25 @@ public class MobCheckOverlay extends Overlay
             Point textLocation = Perspective.getCanvasTextLocation(client, graphics, lp, npc.getLogicalHeight() + 40);
             if (textLocation != null)
             {
+                // Determine color based on ticks
+                Color tickColor;
+                if (ticks <= 1)
+                    tickColor = Color.RED;
+                else if (ticks <= 3)
+                    tickColor = Color.ORANGE;
+                else
+                    tickColor = Color.GREEN;
+
+                String tickText = String.valueOf(ticks);
                 graphics.setFont(new Font("Arial", Font.BOLD, 16));
-                graphics.setColor(Color.RED);
-                graphics.drawString(String.valueOf(ticks), textLocation.getX(), textLocation.getY());
+
+                // Shadow
+                graphics.setColor(Color.BLACK);
+                graphics.drawString(tickText, textLocation.getX() + 1, textLocation.getY() + 1);
+
+                // Foreground
+                graphics.setColor(tickColor);
+                graphics.drawString(tickText, textLocation.getX(), textLocation.getY());
             }
         }
 
