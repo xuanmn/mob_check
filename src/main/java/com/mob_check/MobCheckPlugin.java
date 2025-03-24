@@ -40,7 +40,7 @@ public class MobCheckPlugin extends Plugin
 		{
 			NPC npc = (NPC) event.getActor();
 			int animationId = npc.getAnimation();
-			int npcState = npc.getState();
+//			int npcState = npc.getState();
 
 			// Only log NPCs that are active (not idle) and have a meaningful animation
 			if (npcState == 108 || animationId != -1)
