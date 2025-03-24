@@ -31,9 +31,29 @@ public class MobCheckOverlay extends Overlay
     {
         Map<Integer, Integer> npcMap = plugin.getNpcNextAttackTickMap();
         int y = 20;
+        int x = 10;
+        int width = 250;
 
         graphics.setFont(new Font("Arial", Font.PLAIN, 14));
 
+        // Count how many lines will be shown
+        long lineCount = client.getNpcs().stream()
+                .filter(npc -> {
+                    Integer ticks = npcMap.get(npc.getIndex());
+                    return ticks != null && ticks > 0;
+                })
+                .count();
+
+        if (lineCount == 0)
+        {
+            return null;
+        }
+
+        // Draw semi-transparent background
+        graphics.setColor(new Color(0, 0, 0, 128)); // semi-transparent black
+        graphics.fillRect(x - 5, y - 15, width, (int) lineCount * 18 + 10);
+
+        // Draw each line
         for (NPC npc : client.getNpcs())
         {
             Integer ticks = npcMap.get(npc.getIndex());
@@ -43,11 +63,13 @@ public class MobCheckOverlay extends Overlay
             }
 
             String line = npc.getName() + " (" + npc.getIndex() + "): " + ticks + " ticks";
-            graphics.setColor(ticks <= 1 ? Color.RED : ticks <= 3 ? Color.ORANGE : Color.GREEN);
-            graphics.drawString(line, 10, y);
-            y += 16;
+            Color tickColor = ticks <= 1 ? Color.RED : ticks <= 3 ? Color.ORANGE : Color.GREEN;
+
+            graphics.setColor(tickColor);
+            graphics.drawString(line, x, y);
+            y += 18;
         }
 
-        return new Dimension(200, y);
+        return new Dimension(width, y);
     }
 }
