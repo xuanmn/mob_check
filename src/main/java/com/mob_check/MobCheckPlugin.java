@@ -69,16 +69,12 @@ public class MobCheckPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		for (Map.Entry<Integer, Integer> entry : npcNextAttackTickMap.entrySet())
-		{
-			int ticks = entry.getValue();
-			npcNextAttackTickMap.put(entry.getKey(), ticks > 0 ? ticks - 1 : 0);
-
-			if (ticks > 0)
-			{
-				System.out.println("NPC Index " + entry.getKey() + " - Ticks until next attack: " + (ticks - 1));
+		npcNextAttackTickMap.replaceAll((index, ticks) -> ticks > 0 ? ticks - 1 : 0);
+		npcNextAttackTickMap.forEach((index, ticks) -> {
+			if (ticks > 0) {
+				System.out.println("NPC Index " + index + " - Ticks until next attack: " + ticks);
 			}
-		}
+		});
 	}
 
 	private int getAttackSpeedForNpc(int npcId)
@@ -93,5 +89,4 @@ public class MobCheckPlugin extends Plugin
 				return 4;
 		}
 	}
-
 }
