@@ -21,7 +21,7 @@ public class MobCheckPlugin extends Plugin
 {
 	@Inject
 	private Client client;
-	
+
 	@Inject
 	private MobCheckOverlay overlay;
 
@@ -37,7 +37,9 @@ public class MobCheckPlugin extends Plugin
 			7593, // Jal-Ak
 			7604, // Jal-Xil
 			7610, // Jal-Zek
-			7618  // TzKal-Zuk
+			7618, // TzKal-Zuk
+			8061 // Abyssal Demon
+
 	);
 
 	@Override
@@ -111,6 +113,8 @@ public class MobCheckPlugin extends Plugin
 				return 6;
 			case 7710: // TzKal-Zuk
 				return 10;
+			case 8061: // Abyssal Demon
+				return 4;
 			default:
 				return 4; // Default fallback
 		}
