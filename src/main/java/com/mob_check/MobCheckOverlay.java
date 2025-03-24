@@ -2,10 +2,11 @@ package com.mob_check;
 
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
+import net.runelite.api.Point;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
+import net.runelite.client.ui.overlay.OverlayUtil;
 
 import javax.inject.Inject;
 import java.awt.*;
@@ -21,55 +22,45 @@ public class MobCheckOverlay extends Overlay
     {
         this.client = client;
         this.plugin = plugin;
-        setPosition(OverlayPosition.TOP_LEFT);
-        setLayer(OverlayLayer.ABOVE_WIDGETS);
-        setPriority(OverlayPriority.MED);
+        setPosition(OverlayPosition.DYNAMIC);
+        setLayer(OverlayLayer.ABOVE_SCENE);
     }
 
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        Map<Integer, Integer> npcMap = plugin.getNpcNextAttackTickMap();
-        int y = 20;
-        int x = 10;
-        int width = 250;
+        Map<Integer, Integer> npcTickMap = plugin.getNpcNextAttackTickMap();
 
-        graphics.setFont(new Font("Arial", Font.PLAIN, 14));
+        // Set larger font
+        Font originalFont = graphics.getFont();
+        graphics.setFont(new Font("Arial", Font.BOLD, 16));
 
-        // Count how many lines will be shown
-        long lineCount = client.getNpcs().stream()
-                .filter(npc -> {
-                    Integer ticks = npcMap.get(npc.getIndex());
-                    return ticks != null && ticks > 0;
-                })
-                .count();
-
-        if (lineCount == 0)
-        {
-            return null;
-        }
-
-        // Draw semi-transparent background
-        graphics.setColor(new Color(0, 0, 0, 128)); // semi-transparent black
-        graphics.fillRect(x - 5, y - 15, width, (int) lineCount * 18 + 10);
-
-        // Draw each line
         for (NPC npc : client.getNpcs())
         {
-            Integer ticks = npcMap.get(npc.getIndex());
-            if (ticks == null || ticks <= 0)
+            if (npc == null || !npcTickMap.containsKey(npc.getIndex()))
             {
                 continue;
             }
 
-            String line = npc.getName() + " (" + npc.getIndex() + "): " + ticks + " ticks";
-            Color tickColor = ticks <= 1 ? Color.RED : ticks <= 3 ? Color.ORANGE : Color.GREEN;
+            int ticks = npcTickMap.get(npc.getIndex());
+            if (ticks <= 0)
+            {
+                continue;
+            }
 
-            graphics.setColor(tickColor);
-            graphics.drawString(line, x, y);
-            y += 18;
+            String text = ticks + " ticks";
+
+            Point canvasTextLocation = npc.getCanvasTextLocation(graphics, text, 0);
+            if (canvasTextLocation != null)
+            {
+                Color color = ticks <= 2 ? Color.RED : Color.WHITE;
+                OverlayUtil.renderTextLocation(graphics, canvasTextLocation, text, color);
+            }
         }
 
-        return new Dimension(width, y);
+        // Restore original font
+        graphics.setFont(originalFont);
+
+        return null;
     }
 }

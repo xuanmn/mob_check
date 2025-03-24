@@ -33,19 +33,16 @@ public class MobCheckPlugin extends Plugin
 
 	// Example: Inferno NPCs attack animation IDs (you can expand this list)
 	private static final Set<Integer> ATTACK_ANIMATIONS = Set.of(
-			7582, // Jal-MejRah
-			7593, // Jal-Ak
-			7604, // Jal-Xil
-			7610, // Jal-Zek
-			7618, // TzKal-Zuk
-			8061 // Abyssal Demon
-
+			2309, // Abyssal demon
+			1537, // Abyssal demon
+			1538, // Abyssal demon
+			1552  // Mutated Bloodveld
 	);
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		System.out.println("MobCheckPlugin Started");
+		System.out.println("✅ MobCheckPlugin Started");
 		npcNextAttackTickMap.clear();
 		overlayManager.add(overlay);
 	}
@@ -69,20 +66,23 @@ public class MobCheckPlugin extends Plugin
 		NPC npc = (NPC) event.getActor();
 		int animationId = npc.getAnimation();
 		int npcIndex = npc.getIndex();
+		String name = npc.getName();
+		int npcId = npc.getId();
 
-		if (ATTACK_ANIMATIONS.contains(animationId))
+		System.out.println("🎯 NPC: " + name + " | ID: " + npcId + " | Index: " + npcIndex + " | Animation: " + animationId);
+
+		// Log only if this is a new animation
+		if (animationId != -1 && ATTACK_ANIMATIONS.contains(animationId))
 		{
-			int attackSpeed = getAttackSpeedForNpc(npc.getId());
-
+			int attackSpeed = getAttackSpeedForNpc(npcId);
 			npcNextAttackTickMap.put(npcIndex, attackSpeed);
 
-			System.out.println("NPC Attacking: " + npc.getName() + " (ID: " + npc.getId() + ") - Animation: " + animationId + ", Next attack in " + attackSpeed + " ticks.");
+			System.out.println("💥 Tracking " + name + " (ID: " + npcId + ") - Attack in " + attackSpeed + " ticks");
 		}
 	}
 
 	@Subscribe
-	public void onGameTick(GameTick event)
-	{
+	public void onGameTick(GameTick event) {
 		npcNextAttackTickMap.replaceAll((npcIndex, ticks) -> ticks > 0 ? ticks - 1 : 0);
 
 		// Optional: log countdowns
@@ -103,20 +103,12 @@ public class MobCheckPlugin extends Plugin
 	{
 		switch (npcId)
 		{
-			case 7706: // Jal-MejRah
-				return 6;
-			case 7707: // Jal-Ak
+			case 7241: // Abyssal demon
 				return 4;
-			case 7708: // Jal-Xil
-				return 4;
-			case 7709: // Jal-Zek
-				return 6;
-			case 7710: // TzKal-Zuk
-				return 10;
-			case 8061: // Abyssal Demon
-				return 4;
+			case 7276: // Mutated Bloodveld
+				return 5;
 			default:
-				return 4; // Default fallback
+				return 4; // Default
 		}
 	}
 
