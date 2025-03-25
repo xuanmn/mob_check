@@ -44,8 +44,8 @@ public class MobCheckPlugin extends Plugin
 	private static final Set<Integer> ATTACK_ANIMATIONS = Set.of(
 			2309, // Abyssal demon
 			1537, // Abyssal demon (alt)
-			1538, // Abyssal demon (alt)
-			1552  // Mutated Bloodveld
+			1538 // Abyssal demon (alt)
+//			1552  // Mutated Bloodveld
 	);
 
 	/**
