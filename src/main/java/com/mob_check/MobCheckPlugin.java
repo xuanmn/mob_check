@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 package com.mob_check;
 
 import net.runelite.api.Client;
