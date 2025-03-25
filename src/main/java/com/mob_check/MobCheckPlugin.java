@@ -18,110 +18,104 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A RuneLite plugin that tracks NPC attack animations and shows a tick countdown
- * for when tracked NPCs will next attack.
+ * RuneLite plugin that tracks NPCs attacking the local player and logs
+ * their animations and time until next attack.
  */
 @PluginDescriptor(name = "Mob Check Plugin")
 public class MobCheckPlugin extends Plugin
 {
-	// Injected overlay instance to display the attack tick countdown above NPCs
-	@Inject
-	private MobCheckOverlay overlay;
+	@Inject private MobCheckOverlay overlay;
+	@Inject private OverlayManager overlayManager;
+	@Inject private Client client;
 
-	// OverlayManager handles adding and removing overlays
-	@Inject
-	private OverlayManager overlayManager;
-
-	@Inject
-	private Client client;
-
+	private final Map<Integer, Integer> lastAttackTick = new HashMap<>();
+	private int currentTick = 0;
 
 	/**
-	 * Map to track how many ticks remain until the NPC attacks again.
-	 * Key = NPC index (unique identifier for each NPC instance in-game)
-	 * Value = Ticks remaining until next attack
+	 * Map to track NPC index to ticks left until next attack.
 	 */
 	@Getter
 	private final Map<Integer, Integer> npcNextAttackTickMap = new HashMap<>();
 
 	/**
-	 * Set of animation IDs that correspond to known attack animations.
-	 * These IDs trigger the start of an attack cooldown for the NPC.
+	 * Set of known attack animations.
 	 */
 	private static final Set<Integer> ATTACK_ANIMATIONS = Set.of(
 			2309, // Abyssal demon
-			1537, // Abyssal demon (alt)
-			1538, // Abyssal demon (alt)
-			7590, // JalTok-Jad
-			7591, // JalTok-Jad
+			1537, 1538, // Alt animations
+			7590, 7591, // JalTok-Jad (Magic, Ranged)
 			1552  // Mutated Bloodveld
 	);
 
-	/**
-	 * Called when the plugin starts. Initializes state and adds overlay.
-	 */
 	@Override
 	protected void startUp()
 	{
-		npcNextAttackTickMap.clear();          // Clear previous tick data
-		overlayManager.add(overlay);           // Add overlay to client
+		npcNextAttackTickMap.clear();
+		overlayManager.add(overlay);
 		System.out.println("✅ MobCheckPlugin Started");
 	}
 
-	/**
-	 * Called when the plugin stops. Cleans up state and removes overlay.
-	 */
 	@Override
 	protected void shutDown()
 	{
-		npcNextAttackTickMap.clear();          // Clear state
-		overlayManager.remove(overlay);        // Remove overlay from client
-		System.out.println("MobCheckPlugin Stopped");
+		npcNextAttackTickMap.clear();
+		overlayManager.remove(overlay);
+		System.out.println("🛑 MobCheckPlugin Stopped");
 	}
 
 	/**
-	 * Triggered whenever an animation changes for any actor (player or NPC).
-	 * We're only interested in NPCs and specifically their attack animations.
+	 * Called when any actor's animation changes.
+	 * Filters to only NPCs attacking the player.
 	 */
 
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged event)
 	{
-		if (!(event.getActor() instanceof NPC))
-		{
-			return;
-		}
+		if (!(event.getActor() instanceof NPC)) return;
 
 		NPC npc = (NPC) event.getActor();
+		if (npc.getInteracting() != client.getLocalPlayer()) return;
 
-		// Only show if it's attacking the player
-		if (npc.getInteracting() == client.getLocalPlayer())
+		int animation = npc.getAnimation();
+		int index = npc.getIndex();
+
+		if (ATTACK_ANIMATIONS.contains(animation))
 		{
-			int animation = npc.getAnimation();
+			Integer lastTick = lastAttackTick.get(index);
+			if (lastTick != null)
+			{
+				int delay = currentTick - lastTick;
+				System.out.println("⏱️ " + npc.getName() + " attacked again after " + delay + " ticks.");
+			}
+			lastAttackTick.put(index, currentTick);
 			System.out.println("🎯 Attacker Animation Update: " + npc.getName()
 					+ " | ID: " + npc.getId()
 					+ " | Animation: " + animation
-					+ " | Index: " + npc.getIndex());
+					+ " | Index: " + index);
 		}
 	}
-
-
+	/**
+	 * Every tick, check who is attacking us and print info.
+	 */
 	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
-		NPC attacker = getAttackingNpc();
+		currentTick++;
 
+		NPC attacker = getAttackingNpc();
 		if (attacker != null)
 		{
-			String name = attacker.getName();
 			int id = attacker.getId();
-			int anim = attacker.getAnimation();
 			int index = attacker.getIndex();
+			int anim = attacker.getAnimation();
 
-			System.out.println("🔴 Attacking NPC: " + name + " | ID: " + id + " | Animation: " + anim + " | Index: " + index);
+			System.out.println("🔴 Attacking NPC: " + attacker.getName() + " | ID: " + id + " | Animation: " + anim + " | Index: " + index);
 		}
 	}
 
+	/**
+	 * Finds the NPC currently attacking the local player.
+	 */
 	private NPC getAttackingNpc()
 	{
 		Player localPlayer = client.getLocalPlayer();
@@ -138,29 +132,23 @@ public class MobCheckPlugin extends Plugin
 				return npc;
 			}
 		}
-
 		return null;
 	}
+
 	/**
-	 * Returns the known attack speed (in ticks) for specific NPC IDs.
-	 * If the NPC ID isn't known, it returns a default value of 4.
+	 * Returns known attack speed in ticks for specific NPCs.
 	 */
 	private int getAttackSpeedForNpc(int npcId)
 	{
 		switch (npcId)
 		{
-			case 10623: // JalTok-Jad
-				return 10;
-			case 7241: // Abyssal demon
-				return 4;
-			case 7276: // Mutated Bloodveld
-				return 5;
-			default:   // Fallback/default for unknown NPCs
-				return 4;
+			case 10623: return 10; // JalTok-Jad
+			case 7241: return 4;   // Abyssal demon
+			case 7276: return 5;   // Mutated Bloodveld
+			default: return 4;
 		}
 	}
 }
-
 
 
 
