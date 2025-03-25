@@ -1,7 +1,10 @@
 package com.mob_check;
 
 import lombok.Getter;
+import net.runelite.api.Actor;
+import net.runelite.api.Client;
 import net.runelite.api.NPC;
+import net.runelite.api.Player;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
@@ -29,6 +32,10 @@ public class MobCheckPlugin extends Plugin
 	@Inject
 	private OverlayManager overlayManager;
 
+	@Inject
+	private Client client;
+
+
 	/**
 	 * Map to track how many ticks remain until the NPC attacks again.
 	 * Key = NPC index (unique identifier for each NPC instance in-game)
@@ -44,8 +51,8 @@ public class MobCheckPlugin extends Plugin
 	private static final Set<Integer> ATTACK_ANIMATIONS = Set.of(
 			2309, // Abyssal demon
 			1537, // Abyssal demon (alt)
-			1538 // Abyssal demon (alt)
-//			1552  // Mutated Bloodveld
+			1538, // Abyssal demon (alt)
+			1552  // Mutated Bloodveld
 	);
 
 	/**
@@ -74,47 +81,65 @@ public class MobCheckPlugin extends Plugin
 	 * Triggered whenever an animation changes for any actor (player or NPC).
 	 * We're only interested in NPCs and specifically their attack animations.
 	 */
+
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged event)
 	{
-		// Ignore if the actor isn't an NPC
 		if (!(event.getActor() instanceof NPC))
 		{
 			return;
 		}
 
 		NPC npc = (NPC) event.getActor();
-		int animationId = npc.getAnimation();
-		int npcIndex = npc.getIndex();
+		Actor target = npc.getInteracting();
 
-		// If this is an attack animation we're tracking, reset its attack cooldown
-		if (animationId != -1 && ATTACK_ANIMATIONS.contains(animationId))
+		// Only log if it's attacking you
+		if (target == client.getLocalPlayer())
 		{
-			int attackSpeed = getAttackSpeedForNpc(npc.getId()); // Get known attack speed
-			npcNextAttackTickMap.put(npcIndex, attackSpeed);     // Start countdown for this NPC
-			System.out.println("💥 Tracking " + npc.getName() + " - Attack in " + attackSpeed + " ticks");
+			System.out.println("🎯 Attacker Animation Update: " + npc.getName() +
+					" | ID: " + npc.getId() +
+					" | Animation: " + npc.getAnimation() +
+					" | Index: " + npc.getIndex());
 		}
 	}
 
-	/**
-	 * Called every game tick (~600ms in Old School RuneScape).
-	 * Decrements the tick counters for all tracked NPCs.
-	 */
-	@Subscribe
-	public void onGameTick(GameTick event)
-	{
-		// Decrease countdown for all tracked NPCs, stopping at 0
-		npcNextAttackTickMap.replaceAll((index, ticks) -> ticks > 0 ? ticks - 1 : 0);
 
-		// Optionally log tick countdowns
-		npcNextAttackTickMap.forEach((index, ticks) -> {
-			if (ticks > 0)
-			{
-				System.out.println("NPC Index " + index + " - Ticks until next attack: " + ticks);
-			}
-		});
+
+	@Subscribe
+	public void onGameTick(GameTick tick)
+	{
+		NPC attacker = getAttackingNpc();
+
+		if (attacker != null)
+		{
+			String name = attacker.getName();
+			int id = attacker.getId();
+			int anim = attacker.getAnimation();
+			int index = attacker.getIndex();
+
+			System.out.println("🔴 Attacking NPC: " + name + " | ID: " + id + " | Animation: " + anim + " | Index: " + index);
+		}
 	}
 
+	private NPC getAttackingNpc()
+	{
+		Player localPlayer = client.getLocalPlayer();
+		if (localPlayer == null)
+		{
+			return null;
+		}
+
+		for (NPC npc : client.getNpcs())
+		{
+			Actor target = npc.getInteracting();
+			if (target == localPlayer)
+			{
+				return npc;
+			}
+		}
+
+		return null;
+	}
 	/**
 	 * Returns the known attack speed (in ticks) for specific NPC IDs.
 	 * If the NPC ID isn't known, it returns a default value of 4.
@@ -123,6 +148,10 @@ public class MobCheckPlugin extends Plugin
 	{
 		switch (npcId)
 		{
+			case 2652:
+				return 10;
+			case 2655:
+				return 10;
 			case 7241: // Abyssal demon
 				return 4;
 			case 7276: // Mutated Bloodveld
@@ -132,3 +161,69 @@ public class MobCheckPlugin extends Plugin
 		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+//	@Subscribe
+//	public void onGameTick(GameTick event) {
+//		npcNextAttackTickMap.replaceAll((npcIndex, ticks) -> ticks > 0 ? ticks - 1 : 0);
+//
+//		// Optional: log countdowns
+//		for (Map.Entry<Integer, Integer> entry : npcNextAttackTickMap.entrySet())
+//		{
+//			if (entry.getValue() > 0)
+//			{
+//				System.out.println("NPC Index " + entry.getKey() + " - Ticks until next attack: " + entry.getValue());
+//			}
+//		}
+//	}
+
+//	@Subscribe
+//	public void onAnimationChanged(AnimationChanged event)
+//	{
+//		// Ignore if the actor isn't an NPC
+//		if (!(event.getActor() instanceof NPC))
+//		{
+//			return;
+//		}
+//
+//		NPC npc = (NPC) event.getActor();
+//		int animationId = npc.getAnimation();
+//		int npcIndex = npc.getIndex();
+//
+//		// If this is an attack animation we're tracking, reset its attack cooldown
+//		if (animationId != -1 && ATTACK_ANIMATIONS.contains(animationId))
+//		{
+//			int attackSpeed = getAttackSpeedForNpc(npc.getId()); // Get known attack speed
+//			npcNextAttackTickMap.put(npcIndex, attackSpeed);     // Start countdown for this NPC
+//			System.out.println("💥 Tracking " + npc.getName() + " - Attack in " + attackSpeed + " ticks");
+//		}
+//	}
+
+
+//@Subscribe
+//public void onNpcAnimationChanged(NpcAnimationChanged event)
+//{
+//	NPC npc = event.getNpc();
+//
+//	if (npc.getInteracting() == client.getLocalPlayer())
+//	{
+//		int id = npc.getId();
+//		int anim = npc.getAnimation();
+//
+//		System.out.println("🔥 NpcAnimationChanged: " + npc.getName()
+//				+ " | ID: " + id
+//				+ " | Animation: " + anim
+//				+ " | Index: " + npc.getIndex());
+//	}
+//}
