@@ -12,10 +12,6 @@ import javax.inject.Inject;
 import java.awt.*;
 import java.util.Map;
 
-/**
- * Overlay that displays a tick countdown above tracked NPCs, showing
- * how many game ticks remain until their next attack.
- */
 public class MobCheckOverlay extends Overlay
 {
     private final Client client;
@@ -26,9 +22,8 @@ public class MobCheckOverlay extends Overlay
     {
         this.client = client;
         this.plugin = plugin;
-
         setPosition(OverlayPosition.DYNAMIC);
-        setLayer(OverlayLayer.ABOVE_SCENE); // Draw above 3D game scene
+        setLayer(OverlayLayer.ABOVE_SCENE);
     }
 
     @Override
@@ -36,33 +31,36 @@ public class MobCheckOverlay extends Overlay
     {
         Map<Integer, Integer> npcTickMap = plugin.getNpcNextAttackTickMap();
 
-        // Use a bold font for better visibility
+        // Set larger font
         Font originalFont = graphics.getFont();
-        graphics.setFont(new Font("Arial", Font.BOLD, 18));
+        graphics.setFont(new Font("Arial", Font.BOLD, 16));
 
         for (NPC npc : client.getNpcs())
         {
-            if (npc == null)
+            if (npc == null || !npcTickMap.containsKey(npc.getIndex()))
+            {
                 continue;
+            }
 
-            int index = npc.getIndex();
-            Integer ticksRemaining = npcTickMap.get(index);
-
-            if (ticksRemaining == null || ticksRemaining <= 0)
+            int ticks = npcTickMap.get(npc.getIndex());
+            if (ticks <= 0)
+            {
                 continue;
+            }
 
-            String text = ticksRemaining + " ticks";
+            String text = ticks + " ticks";
 
-            // Try to get the canvas position above the NPC's head
             Point canvasTextLocation = npc.getCanvasTextLocation(graphics, text, 0);
             if (canvasTextLocation != null)
             {
-                Color textColor = ticksRemaining <= 2 ? Color.RED : Color.WHITE;
-                OverlayUtil.renderTextLocation(graphics, canvasTextLocation, text, textColor);
+                Color color = ticks <= 2 ? Color.RED : Color.WHITE;
+                OverlayUtil.renderTextLocation(graphics, canvasTextLocation, text, color);
             }
         }
 
+        // Restore original font
         graphics.setFont(originalFont);
+
         return null;
     }
 }
