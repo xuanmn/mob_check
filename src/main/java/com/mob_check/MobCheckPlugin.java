@@ -52,6 +52,8 @@ public class MobCheckPlugin extends Plugin
 			2309, // Abyssal demon
 			1537, // Abyssal demon (alt)
 			1538, // Abyssal demon (alt)
+			7590, // JalTok-Jad
+			7591, // JalTok-Jad
 			1552  // Mutated Bloodveld
 	);
 
@@ -91,18 +93,17 @@ public class MobCheckPlugin extends Plugin
 		}
 
 		NPC npc = (NPC) event.getActor();
-		Actor target = npc.getInteracting();
 
-		// Only log if it's attacking you
-		if (target == client.getLocalPlayer())
+		// Only show if it's attacking the player
+		if (npc.getInteracting() == client.getLocalPlayer())
 		{
-			System.out.println("🎯 Attacker Animation Update: " + npc.getName() +
-					" | ID: " + npc.getId() +
-					" | Animation: " + npc.getAnimation() +
-					" | Index: " + npc.getIndex());
+			int animation = npc.getAnimation();
+			System.out.println("🎯 Attacker Animation Update: " + npc.getName()
+					+ " | ID: " + npc.getId()
+					+ " | Animation: " + animation
+					+ " | Index: " + npc.getIndex());
 		}
 	}
-
 
 
 	@Subscribe
@@ -148,9 +149,7 @@ public class MobCheckPlugin extends Plugin
 	{
 		switch (npcId)
 		{
-			case 2652:
-				return 10;
-			case 2655:
+			case 10623: // JalTok-Jad
 				return 10;
 			case 7241: // Abyssal demon
 				return 4;
