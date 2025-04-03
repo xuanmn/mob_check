@@ -96,7 +96,6 @@ public class MobCheckPlugin extends Plugin
 	}
 
 	/**
-	 * he
 	 * Returns the attack speed in ticks for known NPCs.
 	 * You can expand this with more accurate data.
 	 */
