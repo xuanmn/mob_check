@@ -112,6 +112,7 @@ public class MobCheckPlugin extends Plugin
 		}
 	}
 	//	@Getter
+	//
 	//	private final Map<Integer, Integer> npcNextAttackTickMap = new HashMap<>();
 	public Map<Integer, Integer> getNpcNextAttackTickMap()
 	{
