@@ -29,7 +29,7 @@ public class MobCheckOverlay extends Overlay
     @Override
     public Dimension render(Graphics2D graphics)
     {
-        Map<Integer, Integer> npcTickMap = plugin.getNpcNextAttackTickMap();
+        Map<Integer, MobCheckPlugin.AttackState> npcTickMap = plugin.getNpcNextAttackTickMap();
 
         // Set larger font
         Font originalFont = graphics.getFont();
@@ -42,13 +42,14 @@ public class MobCheckOverlay extends Overlay
                 continue;
             }
 
-            int ticks = npcTickMap.get(npc.getIndex());
+            MobCheckPlugin.AttackState state = npcTickMap.get(npc.getIndex());
+            int ticks = state.ticks;
             if (ticks <= 0)
             {
                 continue;
             }
 
-            String text = ticks + " ticks";
+            String text = ticks + " ticks (" + state.style + ")";
 
             Point canvasTextLocation = npc.getCanvasTextLocation(graphics, text, 0);
             if (canvasTextLocation != null)

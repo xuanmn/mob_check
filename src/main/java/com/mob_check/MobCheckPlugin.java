@@ -28,15 +28,27 @@ public class MobCheckPlugin extends Plugin
 	@Inject
 	private OverlayManager overlayManager;
 
-	// Maps NPC index to ticks until next attack
-	private final Map<Integer, Integer> npcNextAttackTickMap = new HashMap<>();
+	public static class AttackState {
+		public int ticks;
+		public String style;
 
-	// Example: Inferno NPCs attack animation IDs (you can expand this list)
-	private static final Set<Integer> ATTACK_ANIMATIONS = Set.of(
-			2309, // Abyssal demon
-			1537, // Abyssal demon
-			1538, // Abyssal demon
-			1552  // Mutated Bloodveld
+		public AttackState(int ticks, String style) {
+			this.ticks = ticks;
+			this.style = style;
+		}
+	}
+
+	// Maps NPC index to their attack state (ticks left, prayer needed)
+	private final Map<Integer, AttackState> npcNextAttackTickMap = new HashMap<>();
+
+	// Maps animation ID to the suggested protection prayer
+	private static final Map<Integer, String> ATTACK_ANIMATIONS = Map.of(
+			2309, "Pray Melee", // Abyssal demon
+			1537, "Pray Melee", // Abyssal demon
+			1538, "Pray Melee", // Abyssal demon
+			1552, "Pray Melee",  // Mutated Bloodveld
+			7590, "Pray Magic", // JalTok-Jad (Magic)
+			7591, "Pray Range"  // JalTok-Jad (Range)
 	);
 
 	@Override
@@ -72,25 +84,32 @@ public class MobCheckPlugin extends Plugin
 		System.out.println("🎯 NPC: " + name + " | ID: " + npcId + " | Index: " + npcIndex + " | Animation: " + animationId);
 
 		// Log only if this is a new animation
-		if (animationId != -1 && ATTACK_ANIMATIONS.contains(animationId))
+		if (animationId != -1 && ATTACK_ANIMATIONS.containsKey(animationId))
 		{
 			int attackSpeed = getAttackSpeedForNpc(npcId);
-			npcNextAttackTickMap.put(npcIndex, attackSpeed);
+			String attackStyle = ATTACK_ANIMATIONS.get(animationId);
+			npcNextAttackTickMap.put(npcIndex, new AttackState(attackSpeed, attackStyle));
 
-			System.out.println("💥 Tracking " + name + " (ID: " + npcId + ") - Attack in " + attackSpeed + " ticks");
+			System.out.println("💥 Tracking " + name + " (ID: " + npcId + ") - Attack in " + attackSpeed + " ticks (" + attackStyle + ")");
 		}
 	}
 
 	@Subscribe
 	public void onGameTick(GameTick event) {
-		npcNextAttackTickMap.replaceAll((npcIndex, ticks) -> ticks > 0 ? ticks - 1 : 0);
+		for (AttackState state : npcNextAttackTickMap.values())
+		{
+			if (state.ticks > 0)
+			{
+				state.ticks--;
+			}
+		}
 
 		// Optional: log countdowns
-		for (Map.Entry<Integer, Integer> entry : npcNextAttackTickMap.entrySet())
+		for (Map.Entry<Integer, AttackState> entry : npcNextAttackTickMap.entrySet())
 		{
-			if (entry.getValue() > 0)
+			if (entry.getValue().ticks > 0)
 			{
-				System.out.println("NPC Index " + entry.getKey() + " - Ticks until next attack: " + entry.getValue());
+				System.out.println("NPC Index " + entry.getKey() + " - Ticks until next attack: " + entry.getValue().ticks + " (" + entry.getValue().style + ")");
 			}
 		}
 	}
@@ -127,7 +146,7 @@ public class MobCheckPlugin extends Plugin
   	//
  	//
 	//	private final Map<Integer, Integer> npcNextAttackTickMap = new HashMap<>();
-	public Map<Integer, Integer> getNpcNextAttackTickMap()
+	public Map<Integer, AttackState> getNpcNextAttackTickMap()
 	{
 		return npcNextAttackTickMap;
 	}
