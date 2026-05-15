@@ -1,67 +1,90 @@
 package com.mob_check;
 
 import net.runelite.api.Client;
-import net.runelite.api.NPC;
-import net.runelite.api.Point;
+import net.runelite.api.Player;
+import net.runelite.api.SpriteID;
+import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayUtil;
+import net.runelite.client.ui.overlay.components.InfoBoxComponent;
+import net.runelite.client.ui.overlay.components.PanelComponent;
 
 import javax.inject.Inject;
 import java.awt.*;
-import java.util.Map;
+import java.awt.image.BufferedImage;
 
 public class MobCheckOverlay extends Overlay
 {
-    private final Client client;
-    private final MobCheckPlugin plugin;
+	private final Client client;
+	private final MobCheckPlugin plugin;
+	private final SpriteManager spriteManager;
+	private final PanelComponent panelComponent = new PanelComponent();
 
-    @Inject
-    public MobCheckOverlay(Client client, MobCheckPlugin plugin)
-    {
-        this.client = client;
-        this.plugin = plugin;
-        setPosition(OverlayPosition.DYNAMIC);
-        setLayer(OverlayLayer.ABOVE_SCENE);
-    }
+	@Inject
+	public MobCheckOverlay(Client client, MobCheckPlugin plugin, SpriteManager spriteManager)
+	{
+		this.client = client;
+		this.plugin = plugin;
+		this.spriteManager = spriteManager;
+		setPosition(OverlayPosition.TOP_LEFT);
+		setLayer(OverlayLayer.ABOVE_WIDGETS);
+	}
 
-    @Override
-    public Dimension render(Graphics2D graphics)
-    {
-        Map<Integer, MobCheckPlugin.AttackState> npcTickMap = plugin.getNpcNextAttackTickMap();
+	@Override
+	public Dimension render(Graphics2D graphics)
+	{
+		panelComponent.getChildren().clear();
 
-        // Set larger font
-        Font originalFont = graphics.getFont();
-        graphics.setFont(new Font("Arial", Font.BOLD, 16));
+		plugin.getPriorityAttack().ifPresent(priority -> {
+			BufferedImage sprite = getPrayerSprite(priority.style);
 
-        for (NPC npc : client.getNpcs())
-        {
-            if (npc == null || !npcTickMap.containsKey(npc.getIndex()))
-            {
-                continue;
-            }
+			if (sprite != null)
+			{
+				// 1. Add to the side panel
+				InfoBoxComponent infoBox = new InfoBoxComponent();
+				infoBox.setImage(sprite);
+				infoBox.setText(priority.ticks + "t");
+				infoBox.setColor(priority.ticks <= 1 ? Color.RED : Color.WHITE);
+				infoBox.setBackgroundColor(new Color(0, 0, 0, 150));
+				panelComponent.getChildren().add(infoBox);
 
-            MobCheckPlugin.AttackState state = npcTickMap.get(npc.getIndex());
-            int ticks = state.ticks;
-            if (ticks <= 0)
-            {
-                continue;
-            }
+				// 2. Render above player's head
+				renderAbovePlayer(graphics, sprite, priority.ticks);
+			}
+		});
 
-            String text = ticks + " ticks (" + state.style + ")";
+		return panelComponent.render(graphics);
+	}
 
-            Point canvasTextLocation = npc.getCanvasTextLocation(graphics, text, 0);
-            if (canvasTextLocation != null)
-            {
-                Color color = ticks <= 2 ? Color.RED : Color.WHITE;
-                OverlayUtil.renderTextLocation(graphics, canvasTextLocation, text, color);
-            }
-        }
+	private void renderAbovePlayer(Graphics2D graphics, BufferedImage sprite, int ticks)
+	{
+		Player player = client.getLocalPlayer();
+		if (player == null) return;
 
-        // Restore original font
-        graphics.setFont(originalFont);
+		// Offset slightly to the side of the actual overheads
+		net.runelite.api.Point point = player.getCanvasImageLocation(sprite, player.getLogicalHeight() + 100);
+		if (point != null)
+		{
+			graphics.drawImage(sprite, point.getX() - 40, point.getY(), null);
 
-        return null;
-    }
+			// Draw tick countdown next to the icon
+			graphics.setColor(ticks <= 1 ? Color.RED : Color.WHITE);
+			graphics.setFont(new Font("Arial", Font.BOLD, 18));
+			graphics.drawString(ticks + "t", point.getX() - 5, point.getY() + (sprite.getHeight() / 2) + 5);
+		}
+	}
+
+	private BufferedImage getPrayerSprite(String style)
+	{
+		int spriteId;
+		switch (style)
+		{
+			case "Pray Magic": spriteId = SpriteID.PRAYER_PROTECT_FROM_MAGIC; break;
+			case "Pray Range": spriteId = SpriteID.PRAYER_PROTECT_FROM_MISSILES; break;
+			case "Pray Melee": spriteId = SpriteID.PRAYER_PROTECT_FROM_MELEE; break;
+			default: return null;
+		}
+		return spriteManager.getSprite(spriteId, 0);
+	}
 }
