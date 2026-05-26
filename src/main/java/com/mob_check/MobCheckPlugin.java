@@ -72,7 +72,6 @@ public class MobCheckPlugin extends Plugin {
 		if (projectile.getInteracting() != client.getLocalPlayer()) {
 			return;
 		}
-
 		// Calculate ticks until impact
 		int ticksRemaining = (projectile.getRemainingCycles() / 30);
 		String style = PROJECTILE_STYLES.getOrDefault(projectile.getId(), "Pray Magic");
