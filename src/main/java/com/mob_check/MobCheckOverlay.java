@@ -18,14 +18,16 @@ public class MobCheckOverlay extends Overlay
 {
 	private final Client client;
 	private final MobCheckPlugin plugin;
+	private final MobCheckConfig config;
 	private final SpriteManager spriteManager;
 	private final PanelComponent panelComponent = new PanelComponent();
 
 	@Inject
-	public MobCheckOverlay(Client client, MobCheckPlugin plugin, SpriteManager spriteManager)
+	public MobCheckOverlay(Client client, MobCheckPlugin plugin, MobCheckConfig config, SpriteManager spriteManager)
 	{
 		this.client = client;
 		this.plugin = plugin;
+		this.config = config;
 		this.spriteManager = spriteManager;
 		setPosition(OverlayPosition.TOP_LEFT);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
@@ -41,20 +43,26 @@ public class MobCheckOverlay extends Overlay
 
 			if (sprite != null)
 			{
-				// 1. Add to the side panel
-				InfoBoxComponent infoBox = new InfoBoxComponent();
-				infoBox.setImage(sprite);
-				infoBox.setText(priority.ticks + "t");
-				infoBox.setColor(priority.ticks <= 1 ? Color.RED : Color.WHITE);
-				infoBox.setBackgroundColor(new Color(0, 0, 0, 150));
-				panelComponent.getChildren().add(infoBox);
+				// 1. Add to the side panel if enabled
+				if (config.showInfoBox())
+				{
+					InfoBoxComponent infoBox = new InfoBoxComponent();
+					infoBox.setImage(sprite);
+					infoBox.setText(priority.ticks + "t");
+					infoBox.setColor(priority.ticks <= config.warningThreshold() ? Color.RED : Color.WHITE);
+					infoBox.setBackgroundColor(new Color(0, 0, 0, 150));
+					panelComponent.getChildren().add(infoBox);
+				}
 
-				// 2. Render above player's head
-				renderAbovePlayer(graphics, sprite, priority.ticks);
+				// 2. Render above player's head if enabled
+				if (config.showOverhead())
+				{
+					renderAbovePlayer(graphics, sprite, priority.ticks);
+				}
 			}
 		});
 
-		return panelComponent.render(graphics);
+		return config.showInfoBox() ? panelComponent.render(graphics) : null;
 	}
 
 	private void renderAbovePlayer(Graphics2D graphics, BufferedImage sprite, int ticks)
@@ -69,7 +77,7 @@ public class MobCheckOverlay extends Overlay
 			graphics.drawImage(sprite, point.getX() - 40, point.getY(), null);
 
 			// Draw tick countdown next to the icon
-			graphics.setColor(ticks <= 1 ? Color.RED : Color.WHITE);
+			graphics.setColor(ticks <= config.warningThreshold() ? Color.RED : Color.WHITE);
 			graphics.setFont(new Font("Arial", Font.BOLD, 18));
 			graphics.drawString(ticks + "t", point.getX() - 5, point.getY() + (sprite.getHeight() / 2) + 5);
 		}
