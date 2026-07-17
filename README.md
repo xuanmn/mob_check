@@ -32,6 +32,16 @@ Inside the RuneLite Configuration Panel under **Mob Check**, you can configure:
 
 ## Building and Testing
 
+### Prerequisites
+
+The plugin build system utilizes Gradle 8.10, which supports **Java 11 through Java 23**. If your default system JDK is newer (e.g., JDK 24+), you will need to set `JAVA_HOME` to a compatible JDK version (such as JDK 11) to compile or run tests:
+
+```bash
+export JAVA_HOME=/path/to/compatible/jdk
+```
+
+### Compiling and Packaging
+
 To compile and package the plugin locally:
 
 ```bash
@@ -44,4 +54,14 @@ To build a shaded JAR containing all code and dependencies for local testing:
 ./gradlew shadowJar
 ```
 
-You can then run the built-in test runner class `com.mob_check.MobCheckPluginTest` inside your IDE to launch RuneLite in developer mode with the plugin preloaded.
+### Running Tests
+
+To run the unit test suite and verify threat logic:
+
+```bash
+./gradlew test
+```
+
+### Manual Testing / Local Run
+
+You can run the built-in integration test runner class `com.mob_check.MobCheckPluginTest` inside your IDE to launch RuneLite in developer mode with the plugin preloaded.
