@@ -1,0 +1,92 @@
+package com.mob_check;
+
+import net.runelite.api.Client;
+import net.runelite.api.Player;
+import net.runelite.api.Point;
+import net.runelite.client.game.SpriteManager;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.util.Optional;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+public class MobCheckOverlayTest
+{
+	private MobCheckOverlay overlay;
+	private Client client;
+	private MobCheckPlugin plugin;
+	private MobCheckConfig config;
+	private SpriteManager spriteManager;
+	private Graphics2D graphics;
+
+	@Before
+	public void setUp()
+	{
+		client = mock(Client.class);
+		plugin = mock(MobCheckPlugin.class);
+		config = mock(MobCheckConfig.class);
+		spriteManager = mock(SpriteManager.class);
+		graphics = mock(Graphics2D.class);
+
+		FontMetrics fontMetrics = mock(FontMetrics.class);
+		when(graphics.getFontMetrics()).thenReturn(fontMetrics);
+		when(graphics.getFontMetrics(any())).thenReturn(fontMetrics);
+		when(fontMetrics.stringWidth(any())).thenReturn(20);
+		when(fontMetrics.getHeight()).thenReturn(12);
+		when(fontMetrics.getAscent()).thenReturn(10);
+
+		when(config.showInfoBox()).thenReturn(true);
+		when(config.showOverhead()).thenReturn(true);
+		when(config.warningThreshold()).thenReturn(1);
+
+		overlay = new MobCheckOverlay(client, plugin, config, spriteManager);
+	}
+
+	@Test
+	public void testRenderDisabledTogglesReturnNull()
+	{
+		when(config.showInfoBox()).thenReturn(false);
+		when(config.showOverhead()).thenReturn(false);
+
+		assertNull(overlay.render(graphics));
+		verify(plugin, never()).getPriorityAttack();
+	}
+
+	@Test
+	public void testRenderNoPriorityAttackReturnsNull()
+	{
+		when(plugin.getPriorityAttack()).thenReturn(Optional.empty());
+
+		assertNull(overlay.render(graphics));
+	}
+
+	@Test
+	public void testRenderPriorityAttackWithInfoBoxAndOverhead()
+	{
+		MobCheckPlugin.AttackState state = new MobCheckPlugin.AttackState(1, "Pray Magic", "Jal-Zek");
+		when(plugin.getPriorityAttack()).thenReturn(Optional.of(state));
+
+		BufferedImage sprite = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+		when(spriteManager.getSprite(anyInt(), eq(0))).thenReturn(sprite);
+
+		Player player = mock(Player.class);
+		when(client.getLocalPlayer()).thenReturn(player);
+		when(player.getLogicalHeight()).thenReturn(200);
+		when(player.getCanvasImageLocation(any(BufferedImage.class), anyInt())).thenReturn(new Point(100, 100));
+
+		assertNotNull(overlay.render(graphics));
+
+		// Verify overhead rendering drew the sprite and text string
+		verify(graphics, times(1)).drawImage(eq(sprite), eq(60), eq(100), any());
+		verify(graphics, times(1)).drawString(eq("1t"), eq(95), eq(121));
+	}
+}

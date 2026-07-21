@@ -136,6 +136,12 @@ public class MobCheckPlugin extends Plugin
 		}
 
 		NPC npc = (NPC) event.getActor();
+		Player localPlayer = client != null ? client.getLocalPlayer() : null;
+		if (localPlayer == null || npc.getInteracting() != localPlayer)
+		{
+			return;
+		}
+
 		int anim = npc.getAnimation();
 
 		if (MELEE_ANIMATIONS.containsKey(anim))
@@ -156,18 +162,17 @@ public class MobCheckPlugin extends Plugin
 		});
 
 		// Sound alert on priority change
-		if (config.playSoundAlert())
+		Optional<AttackState> priorityOpt = getPriorityAttack();
+		if (priorityOpt.isPresent())
 		{
-			getPriorityAttack().ifPresent(priority -> {
-				if (!priority.style.equals(lastPriorityStyle))
-				{
-					client.playSoundEffect(config.soundEffectId());
-					lastPriorityStyle = priority.style;
-				}
-			});
+			AttackState priority = priorityOpt.get();
+			if (config.playSoundAlert() && !priority.style.equals(lastPriorityStyle))
+			{
+				client.playSoundEffect(config.soundEffectId());
+			}
+			lastPriorityStyle = priority.style;
 		}
-
-		if (getPriorityAttack().isEmpty())
+		else
 		{
 			lastPriorityStyle = "";
 		}
@@ -176,13 +181,14 @@ public class MobCheckPlugin extends Plugin
 	public Optional<AttackState> getPriorityAttack()
 	{
 		List<AttackState> attacks = new ArrayList<>();
+		Player localPlayer = client != null ? client.getLocalPlayer() : null;
 
 		// Gather active projectiles targeting the player
-		if (client != null && client.getProjectiles() != null)
+		if (client != null && client.getProjectiles() != null && localPlayer != null)
 		{
 			for (Projectile projectile : client.getProjectiles())
 			{
-				if (projectile.getInteracting() == client.getLocalPlayer())
+				if (projectile.getInteracting() == localPlayer)
 				{
 					String style = PROJECTILE_STYLES.get(projectile.getId());
 					if (style == null && config.trackUnknownProjectiles())

@@ -150,6 +150,9 @@ public class MobCheckPluginUnitTest
 	@Test
 	public void testMeleeAttackTriggerAndCountdown()
 	{
+		Player player = mock(Player.class);
+		when(client.getLocalPlayer()).thenReturn(player);
+
 		net.runelite.api.Deque<Projectile> deque = mockDeque(Collections.emptyList());
 		when(client.getProjectiles()).thenReturn(deque);
 
@@ -157,6 +160,7 @@ public class MobCheckPluginUnitTest
 		when(npc.getIndex()).thenReturn(123);
 		when(npc.getName()).thenReturn("Bloodveld");
 		when(npc.getAnimation()).thenReturn(1552); // Bloodveld melee animation, warningTicks = 4
+		when(npc.getInteracting()).thenReturn(player);
 
 		// Trigger animation change
 		AnimationChanged animationChanged = new AnimationChanged();
@@ -183,5 +187,73 @@ public class MobCheckPluginUnitTest
 
 		priority = plugin.getPriorityAttack();
 		assertFalse(priority.isPresent());
+	}
+
+	@Test
+	public void testMeleeAttackIgnoredIfNotTargetingLocalPlayer()
+	{
+		Player localPlayer = mock(Player.class);
+		Player otherPlayer = mock(Player.class);
+		when(client.getLocalPlayer()).thenReturn(localPlayer);
+
+		NPC npc = mock(NPC.class);
+		when(npc.getIndex()).thenReturn(456);
+		when(npc.getName()).thenReturn("Abyssal demon");
+		when(npc.getAnimation()).thenReturn(2309);
+		when(npc.getInteracting()).thenReturn(otherPlayer); // Targeting someone else
+
+		AnimationChanged animationChanged = new AnimationChanged();
+		animationChanged.setActor(npc);
+		plugin.onAnimationChanged(animationChanged);
+
+		Optional<MobCheckPlugin.AttackState> priority = plugin.getPriorityAttack();
+		assertFalse(priority.isPresent());
+	}
+
+	@Test
+	public void testGetPriorityAttackWithNullLocalPlayer()
+	{
+		when(client.getLocalPlayer()).thenReturn(null);
+
+		Projectile projectile = mock(Projectile.class);
+		when(projectile.getInteracting()).thenReturn(null);
+		when(projectile.getId()).thenReturn(1374);
+
+		List<Projectile> list = new ArrayList<>();
+		list.add(projectile);
+		net.runelite.api.Deque<Projectile> deque = mockDeque(list);
+		when(client.getProjectiles()).thenReturn(deque);
+
+		Optional<MobCheckPlugin.AttackState> priority = plugin.getPriorityAttack();
+		assertFalse(priority.isPresent());
+	}
+
+	@Test
+	public void testSoundAlertOnPriorityChange()
+	{
+		Player player = mock(Player.class);
+		when(client.getLocalPlayer()).thenReturn(player);
+		when(config.playSoundAlert()).thenReturn(true);
+		when(config.soundEffectId()).thenReturn(2266);
+
+		NPC npc = mock(NPC.class);
+		when(npc.getIndex()).thenReturn(789);
+		when(npc.getName()).thenReturn("Bloodveld");
+		when(npc.getAnimation()).thenReturn(1552);
+		when(npc.getInteracting()).thenReturn(player);
+
+		AnimationChanged animationChanged = new AnimationChanged();
+		animationChanged.setActor(npc);
+		plugin.onAnimationChanged(animationChanged);
+
+		// Execute game tick
+		plugin.onGameTick(new GameTick());
+
+		// Verify sound effect played
+		verify(client, times(1)).playSoundEffect(2266);
+
+		// Subsequent game tick without style change should not trigger sound again
+		plugin.onGameTick(new GameTick());
+		verify(client, times(1)).playSoundEffect(2266);
 	}
 }

@@ -36,6 +36,11 @@ public class MobCheckOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
+		if (!config.showInfoBox() && !config.showOverhead())
+		{
+			return null;
+		}
+
 		panelComponent.getChildren().clear();
 
 		plugin.getPriorityAttack().ifPresent(priority -> {
