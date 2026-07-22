@@ -1,7 +1,10 @@
 package com.mob_check;
 
 import com.google.inject.Provides;
-import net.runelite.api.*;
+import net.runelite.api.Client;
+import net.runelite.api.NPC;
+import net.runelite.api.Player;
+import net.runelite.api.Projectile;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigManager;
@@ -11,7 +14,12 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @PluginDescriptor(
 	name = "Mob Check",
@@ -128,14 +136,14 @@ public class MobCheckPlugin extends Plugin
 	}
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
 		npcMeleeAttacks.clear();
 		overlayManager.add(overlay);
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		npcMeleeAttacks.clear();
 		overlayManager.remove(overlay);
@@ -150,7 +158,7 @@ public class MobCheckPlugin extends Plugin
 		}
 
 		NPC npc = (NPC) event.getActor();
-		Player localPlayer = client != null ? client.getLocalPlayer() : null;
+		Player localPlayer = client.getLocalPlayer();
 		if (localPlayer == null || npc.getInteracting() != localPlayer)
 		{
 			return;
@@ -195,10 +203,10 @@ public class MobCheckPlugin extends Plugin
 	public Optional<AttackState> getPriorityAttack()
 	{
 		List<AttackState> attacks = new ArrayList<>();
-		Player localPlayer = client != null ? client.getLocalPlayer() : null;
+		Player localPlayer = client.getLocalPlayer();
 
 		// Gather active projectiles targeting the player
-		if (client != null && client.getProjectiles() != null && localPlayer != null)
+		if (client.getProjectiles() != null && localPlayer != null)
 		{
 			for (Projectile projectile : client.getProjectiles())
 			{
@@ -229,8 +237,4 @@ public class MobCheckPlugin extends Plugin
 		return attacks.stream().min(Comparator.comparingInt(a -> a.ticks));
 	}
 
-	public Map<Integer, AttackState> getNpcMeleeAttacks()
-	{
-		return npcMeleeAttacks;
-	}
 }

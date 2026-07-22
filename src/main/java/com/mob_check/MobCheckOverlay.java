@@ -2,7 +2,6 @@ package com.mob_check;
 
 import net.runelite.api.Client;
 import net.runelite.api.Player;
-import net.runelite.api.SpriteID;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -88,14 +87,18 @@ public class MobCheckOverlay extends Overlay
 		}
 	}
 
+	private static final int SPRITE_PRAYER_PROTECT_FROM_MAGIC = 129;
+	private static final int SPRITE_PRAYER_PROTECT_FROM_MISSILES = 128;
+	private static final int SPRITE_PRAYER_PROTECT_FROM_MELEE = 130;
+
 	private BufferedImage getPrayerSprite(String style)
 	{
 		int spriteId;
 		switch (style)
 		{
-			case "Pray Magic": spriteId = SpriteID.PRAYER_PROTECT_FROM_MAGIC; break;
-			case "Pray Range": spriteId = SpriteID.PRAYER_PROTECT_FROM_MISSILES; break;
-			case "Pray Melee": spriteId = SpriteID.PRAYER_PROTECT_FROM_MELEE; break;
+			case "Pray Magic": spriteId = SPRITE_PRAYER_PROTECT_FROM_MAGIC; break;
+			case "Pray Range": spriteId = SPRITE_PRAYER_PROTECT_FROM_MISSILES; break;
+			case "Pray Melee": spriteId = SPRITE_PRAYER_PROTECT_FROM_MELEE; break;
 			default: return null;
 		}
 		return spriteManager.getSprite(spriteId, 0);

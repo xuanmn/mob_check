@@ -73,15 +73,4 @@ public interface MobCheckConfig extends Config
 	{
 		return false;
 	}
-
-	@ConfigItem(
-		keyName = "enableColosseum",
-		name = "Enable Fortis Colosseum Tracking",
-		description = "Enables tracking for Fortis Colosseum monsters (Manticore, Serpent Shaman, Javelinic Colossus, etc.)",
-		position = 7
-	)
-	default boolean enableColosseum()
-	{
-		return true;
-	}
 }
