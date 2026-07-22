@@ -256,4 +256,48 @@ public class MobCheckPluginUnitTest
 		plugin.onGameTick(new GameTick());
 		verify(client, times(1)).playSoundEffect(2266);
 	}
+
+	@Test
+	public void testGetPriorityAttackWithColosseumProjectile()
+	{
+		Player player = mock(Player.class);
+		when(client.getLocalPlayer()).thenReturn(player);
+
+		Projectile projectile = mock(Projectile.class);
+		when(projectile.getInteracting()).thenReturn(player);
+		when(projectile.getId()).thenReturn(2685); // Serpent Shaman / Magic attack
+		when(projectile.getRemainingCycles()).thenReturn(91); // (91 + 29) / 30 = 4 ticks
+
+		List<Projectile> list = new ArrayList<>();
+		list.add(projectile);
+		net.runelite.api.Deque<Projectile> deque = mockDeque(list);
+		when(client.getProjectiles()).thenReturn(deque);
+
+		Optional<MobCheckPlugin.AttackState> priority = plugin.getPriorityAttack();
+		assertTrue(priority.isPresent());
+		assertEquals("Pray Magic", priority.get().style);
+		assertEquals(4, priority.get().ticks);
+	}
+
+	@Test
+	public void testGetPriorityAttackWithColosseumAnimation()
+	{
+		Player player = mock(Player.class);
+		when(client.getLocalPlayer()).thenReturn(player);
+
+		NPC npc = mock(NPC.class);
+		when(npc.getIndex()).thenReturn(999);
+		when(npc.getName()).thenReturn("Jaguar Warrior");
+		when(npc.getAnimation()).thenReturn(10871); // Jaguar Warrior Melee
+		when(npc.getInteracting()).thenReturn(player);
+
+		AnimationChanged animationChanged = new AnimationChanged();
+		animationChanged.setActor(npc);
+		plugin.onAnimationChanged(animationChanged);
+
+		Optional<MobCheckPlugin.AttackState> priority = plugin.getPriorityAttack();
+		assertTrue(priority.isPresent());
+		assertEquals("Pray Melee", priority.get().style);
+		assertEquals(4, priority.get().ticks);
+	}
 }

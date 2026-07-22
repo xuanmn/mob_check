@@ -89,6 +89,13 @@ public class MobCheckPlugin extends Plugin
 		PROJECTILE_STYLES.put(1217, "Pray Range"); // General Graardor
 		PROJECTILE_STYLES.put(1211, "Pray Magic"); // K'ril Tsutsaroth
 
+		// Fortis Colosseum
+		PROJECTILE_STYLES.put(2685, "Pray Magic"); // Serpent Shaman / Magic attack
+		PROJECTILE_STYLES.put(2686, "Pray Range"); // Javelinic Colossus / Range attack
+		PROJECTILE_STYLES.put(2687, "Pray Magic"); // Manticore Magic projectile
+		PROJECTILE_STYLES.put(2688, "Pray Range"); // Manticore Range projectile
+		PROJECTILE_STYLES.put(2689, "Pray Magic"); // Sol Heredit Ranged/Magic special projectile
+
 		// General / Standard
 		PROJECTILE_STYLES.put(15, "Pray Range");  // Standard arrows / Range NPC projectiles
 		PROJECTILE_STYLES.put(160, "Pray Magic"); // Standard spells / Magic NPC projectiles
@@ -105,6 +112,13 @@ public class MobCheckPlugin extends Plugin
 		MELEE_ANIMATIONS.put(6948, 4); // K'ril Tsutsaroth Melee
 		MELEE_ANIMATIONS.put(4492, 4); // Cerberus Melee
 		MELEE_ANIMATIONS.put(7226, 4); // Demonic Gorilla Melee
+
+		// Fortis Colosseum Melee / Instant Animations
+		MELEE_ANIMATIONS.put(10871, 4); // Jaguar Warrior Melee attack
+		MELEE_ANIMATIONS.put(10872, 4); // Minotaur Melee attack
+		MELEE_ANIMATIONS.put(10873, 4); // Fremennik Berserker Melee attack
+		MELEE_ANIMATIONS.put(10874, 4); // Shockwave Colossus Melee attack
+		MELEE_ANIMATIONS.put(10875, 4); // Sol Heredit Melee attack
 	}
 
 	@Provides

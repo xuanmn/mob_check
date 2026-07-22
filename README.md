@@ -17,6 +17,7 @@ A dynamic PvM Priority Prayer Helper plugin for the RuneLite client. It displays
   - **Gauntlet / Hunllef**: Magic and Range styles
   - **Demonic Gorillas**: Style transition detection
   - **God Wars Dungeon**: Commander Zilyana, General Graardor, and K'ril Tsutsaroth
+  - **Fortis Colosseum**: Serpent Shaman, Javelinic Colossus, Manticore (tri-attack sequence), Jaguar Warrior, Minotaur, Shockwave Colossus, Fremennik Warband, and Sol Heredit
   - **General Combat**: Standard spell and projectile tracking for ordinary NPCs, as well as melee animations (Abyssal demons, Bloodvelds, etc.).
 
 ## Configuration Options
@@ -29,6 +30,7 @@ Inside the RuneLite Configuration Panel under **Mob Check**, you can configure:
 4. **Sound Effect ID**: Customize the sound effect played (default `2266` / GE Plop).
 5. **Warning Threshold**: Configure the tick count at which the overlay indicator turns red to indicate immediate urgency (default: `1` tick remaining).
 6. **Track Unknown Projectiles**: Toggles a fallback to Magic prayer for any projectile targeting you that is not recognized in the database.
+7. **Enable Fortis Colosseum Tracking**: Toggles specialized tracking for Fortis Colosseum projectiles and melee animations.
 
 ## Building and Testing
 
